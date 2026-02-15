@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ logs.title }}</h2>
+<div>{{ logs.created_at }}</div>
+<div>{{ logs.content | linebreaks }}</div>
+{% endblock %}

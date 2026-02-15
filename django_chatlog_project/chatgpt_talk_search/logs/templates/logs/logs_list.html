@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<ul>
+    {% for log in logs %}
+        <li>{{ log.created_at }}: 
+            <a href="{%url 'logs:logs_detail' log.pk %}">{{ log.title }}</a>
+        </li>
+    {% empty %}
+        <div>ログは一つもありません。</div>
+    {% endfor %}
+</ul>
+
+{% endblock %}
