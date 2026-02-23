@@ -9,4 +9,5 @@ urlpatterns = [
     path("list/", views.logs_list, name="logs_list"),
     path("detail/<int:pk>/", views.logs_detail, name="logs_detail"),
     path("create/", LogsCreate.as_view(), name="create"),
+    path("import_json/", views.import_json, name="import_json"),
 ]

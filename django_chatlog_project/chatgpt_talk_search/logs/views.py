@@ -2,6 +2,9 @@ from django.shortcuts import render, get_object_or_404
 from .models import ChatLogModel
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
+from pathlib import Path
+import json
+
 
 def logs_view(request):
     logs = ChatLogModel.objects.all()
@@ -20,5 +23,18 @@ class LogsCreate(CreateView):
     model = ChatLogModel
     fields = ("title", "content")
     success_url = reverse_lazy("logs:logs_list")
+
+def import_json(request):
+    # conversation.jsonを変数に格納
+    conversation_path = Path("conversation.json")
+
+    # open関数でconversation.jsonを読み込み変数に格納
+    with open(conversatrion_path, "r") as f:
+        data = json.load(f)
+        print(data)
+
+    return render(request, "logs/import_json.html", {"data": data}) 
+
+
 
 # Create your views here.
