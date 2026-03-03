@@ -4,6 +4,7 @@ from django.views.generic import CreateView
 from django.urls import reverse_lazy
 from pathlib import Path
 import json
+from django.conf import settings
 
 
 def logs_view(request):
@@ -26,12 +27,12 @@ class LogsCreate(CreateView):
 
 def import_json(request):
     # conversation.jsonを変数に格納
-    conversation_path = Path("conversation.json")
+    conversation_path = settings.BASE_DIR / "logs_data" / "conversations.json"
 
     # open関数でconversation.jsonを読み込み変数に格納
-    with open(conversatrion_path, "r") as f:
+    with open(conversation_path, "r") as f:
         data = json.load(f)
-        print(data)
+        print(data[2]["title"])
 
     return render(request, "logs/import_json.html", {"data": data}) 
 
