@@ -12,3 +12,7 @@ db.sqlite3
 .env
 
 .DS_Store
+
+# log_data
+
+logs_data
