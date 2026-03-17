@@ -5,7 +5,8 @@ from django.urls import reverse_lazy
 from pathlib import Path
 import json
 from django.conf import settings
-
+from datetime import datetime
+from collections import defaultdict
 
 def logs_view(request):
     logs = ChatLogModel.objects.all()
@@ -26,6 +27,7 @@ class LogsCreate(CreateView):
     success_url = reverse_lazy("logs:logs_list")
 
 def import_json(request):
+    print("ここ通っている")
     # conversation.jsonを変数に格納
     conversation_path = settings.BASE_DIR / "logs_data" / "conversations.json"
 
@@ -33,31 +35,43 @@ def import_json(request):
     with open(conversation_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    conversations = []
+    conversations = defaultdict(lambda: defaultdict(list))
         
     for item in data:
         title = item.get("title")
         create_time = item.get("create_time")
-        update_time = item.get("update_time")
+        logs_date = datetime.fromtimestamp(create_time / 1000)
+        strftime = logs_date.strftime("%-m/%-d")  
 
         mapping = item.get("mapping", {})
         for value in mapping.values():
-            message = value.get("message")
-
+            message = value.get("message", {})
             if message:
-                content = message.get("content")
-                if content:
-                    parts = content.get("parts", [])
+                # 自分の会話だけ取得する意図
+                author = message.get("author", {})
+                role = author.get("role", "")
+                if role == "user":
+                    #ログの中身を掘っていく
+                    content = message.get("content")
+                    if content:
+                        parts = content.get("parts", [])
+                        parts_text = "\n".join(parts)
+                        
+                        conversations[title][strftime].append(parts_text)
+                        # print(conversations)
 
-                    conversations.append({
-                        "title": title,
-                        "create_time": create_time,
-                        "update_time": update_time,
-                        "parts": parts,
-            
-                    })
+                        # conversations[title][strftime].append({
+                        #     "title": title,
+                        #     "create_time": logs_date,
+                        #     "parts": parts_text,
+                        # })
 
-    return render(request, "logs/import_json.html", {"data": conversations}) 
+    return render(request, "logs/import_json.html", {
+        "data": {
+            title: {date: logs for date, logs in dates.items()}
+            for title, dates in conversations.items()
+        }
+    }) 
 
 
 

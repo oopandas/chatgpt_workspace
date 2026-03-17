@@ -1,12 +1,52 @@
+
 {% extends 'base.html' %}
 
 {% block content %}
 
-    {% for item in data %}
-        <p>{{ item.title }}</p>
-        <p>{{ item.create_time }}</p>
-        <p>{{ item.update_time }}</p>
-        <p>{{ item.parts }}</p>
+<style>
+    summary {
+        list-style: none;
+    }
+    summary::-webkit-details-marker {
+        display: none;
+    }
+</style>
 
-    {% endfor %}
+{% for title, dates in data.items %}
+    <details style="margin-bottom: 10px;">
+        <summary style="cursor: pointer; font-weight: bold;">
+            <h2>▶︎{{ title }}</h2>
+        </summary>
+        {% for date, logs in dates.items %}
+            <h4>{{ date }}</h4>
+
+            {% for log in logs %}
+            <div style="margin-bottom: 12px; border: 1px solid #ddd; padding: 10px; border-radius: 8px;">
+        
+                <p>{{ log }}</p>
+        
+                <button onclick="copyText(this)">
+                    コピー
+                </button>
+        
+            </div>
+            {% endfor %}
+
+        {% endfor %}    
+    </details>
+
+{% endfor %}
+<script>
+    function copyText(button) {
+        const text = button.previousElementSibling.innerText;
+    
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                alert("コピーしました！");
+            })
+            .catch(() => {
+                alert("コピー失敗");
+            });
+    }
+</script>
 {% endblock  %}
