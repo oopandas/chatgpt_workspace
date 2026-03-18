@@ -40,8 +40,10 @@ def import_json(request):
     for item in data:
         title = item.get("title")
         create_time = item.get("create_time")
-        logs_date = datetime.fromtimestamp(create_time / 1000)
-        strftime = logs_date.strftime("%-m/%-d")  
+        # print(create_time)
+        logs_datetime = datetime.fromtimestamp(create_time)
+
+        strftime = logs_datetime.strftime("%-m/%-d")  
 
         mapping = item.get("mapping", {})
         for value in mapping.values():
@@ -56,23 +58,20 @@ def import_json(request):
                     if content:
                         parts = content.get("parts", [])
                         parts_text = "\n".join(parts)
-                        
+    
                         conversations[title][strftime].append(parts_text)
                         # print(conversations)
 
-                        # conversations[title][strftime].append({
-                        #     "title": title,
-                        #     "create_time": logs_date,
-                        #     "parts": parts_text,
-                        # })
-
+     
     return render(request, "logs/import_json.html", {
         "data": {
             title: {date: logs for date, logs in dates.items()}
             for title, dates in conversations.items()
         }
     }) 
-
+    
+    
+    
 
 
 # Create your views here.
