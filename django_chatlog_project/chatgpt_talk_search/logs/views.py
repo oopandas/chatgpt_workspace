@@ -7,6 +7,7 @@ import json
 from django.conf import settings
 from datetime import datetime
 from collections import defaultdict
+from zipfile import ZipFile
 
 def logs_view(request):
     logs = ChatLogModel.objects.all()
@@ -70,7 +71,13 @@ def import_json(request):
     }) 
     
 def upload_zip(request):
-    
+
+    #ここの文字列何入れるか迷う
+    with zipfile.ZipFile("file.zip") as zip_ref:
+        zip_ref.extractall()
+        print("Extracted files:")
+        for file in zip_ref.namelist():
+        print(file)
     
 
 
