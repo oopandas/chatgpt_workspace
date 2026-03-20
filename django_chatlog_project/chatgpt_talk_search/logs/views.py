@@ -62,7 +62,6 @@ def import_json(request):
                         conversations[title][strftime].append(parts_text)
                         # print(conversations)
 
-     
     return render(request, "logs/import_json.html", {
         "data": {
             title: {date: logs for date, logs in dates.items()}
@@ -70,6 +69,7 @@ def import_json(request):
         }
     }) 
     
+def upload_zip(request):
     
     
 
