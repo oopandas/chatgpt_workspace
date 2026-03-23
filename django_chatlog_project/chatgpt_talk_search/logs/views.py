@@ -3,7 +3,7 @@ from .models import ChatLogModel
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
 from pathlib import Path
-import json
+import json, tempfile, os
 from django.conf import settings
 from datetime import datetime
 from collections import defaultdict
@@ -27,14 +27,33 @@ class LogsCreate(CreateView):
     fields = ("title", "content")
     success_url = reverse_lazy("logs:logs_list")
 
-def import_json(request):
-    print("ここ通っている")
-    # conversation.jsonを変数に格納
-    conversation_path = settings.BASE_DIR / "logs_data" / "conversations.json"
+def extract_json_from_zip(zip_file):
+    """zipからjsonを抽出"""
 
-    # open関数でconversation.jsonを読み込み変数に格納
-    with open(conversation_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    data = None
+    #ここの文字列何入れるか迷う
+    with zipfile.ZipFile(zip_file) as zip_ref:
+        # temp_dirでデータを一時的に保存されるランダムなフォルダを作成する
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # zipの中身をtemp_dirフォルダに全部取り出す
+            zip_ref.extractall(temp_dir)
+
+            print("Extracted files:")
+            # zipの中に入っているファイルを一つずつ取り出して表示する
+            for file in zip_ref.namelist():
+                print(file)
+                if "conversations.json" in file:
+                    logs_path = os.path.join(temp_dir, file)
+                
+                    with open(logs_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        break  # conversations.jsonが見つかったらループを抜ける
+    return data
+
+def parse_conversations(data):
+    """conversations.jsonの内容を解析して、会話のタイトルと日付ごとに会話の内容に整形"""
+    
+    # conversation_path = settings.BASE_DIR / "logs_data" / "conversations.json"
 
     conversations = defaultdict(lambda: defaultdict(list))
         
@@ -62,6 +81,14 @@ def import_json(request):
     
                         conversations[title][strftime].append(parts_text)
                         # print(conversations)
+    return conversations
+
+def upload_zip(request):
+    """zipファイルをアップロードして、conversations.jsonの内容を解析して表示する"""
+    zip_file = request.FILES["zip_file"]
+
+    data = extract_json_from_zip(zip_file)
+    conversations = parse_conversations(data)
 
     return render(request, "logs/import_json.html", {
         "data": {
@@ -69,16 +96,8 @@ def import_json(request):
             for title, dates in conversations.items()
         }
     }) 
-    
-def upload_zip(request):
 
-    #ここの文字列何入れるか迷う
-    with zipfile.ZipFile("file.zip") as zip_ref:
-        zip_ref.extractall()
-        print("Extracted files:")
-        for file in zip_ref.namelist():
-        print(file)
-    
+
 
 
 # Create your views here.
