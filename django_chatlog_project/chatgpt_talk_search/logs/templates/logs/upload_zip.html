@@ -1,7 +1,16 @@
 {% extends "base.html" %}
 
-<title>ファイルをアップロード</title>
 {% block title %}
-    <h1>zipファイルをアップロード</h1>
-    
+    zipファイルをアップロードしてください
+{% endblock  %}
+
+{% block content %}
+    <form class="" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <p>ここにzipファイルをアップロード</p>
+        <input type="file" name="zip_file">
+        
+        <button type="submit">送信</button>
+    </form>
+
 {% endblock %}
