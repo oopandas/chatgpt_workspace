@@ -3,11 +3,10 @@ from .models import ChatLogModel
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
 from pathlib import Path
-import json, tempfile, os
+import json, tempfile, os, zipfile
 from django.conf import settings
 from datetime import datetime
 from collections import defaultdict
-from zipfile import ZipFile
 
 def logs_view(request):
     logs = ChatLogModel.objects.all()
@@ -85,17 +84,31 @@ def parse_conversations(data):
 
 def upload_zip(request):
     """zipファイルをアップロードして、conversations.jsonの内容を解析して表示する"""
-    zip_file = request.FILES["zip_file"]
+    # 最初に開いたとき
+    if request.method == "GET":
+        return render(request, "logs/upload_zip.html")
+    
+    # アップロードされたとき
+    if request.method == "POST":
+        zip_file = request.FILES.get("zip_file")
 
-    data = extract_json_from_zip(zip_file)
-    conversations = parse_conversations(data)
+        if not zip_file:
+            return render(request, "logs/upload_zip.html", {"error": "zipファイルを選択してください"})
 
-    return render(request, "logs/import_json.html", {
-        "data": {
-            title: {date: logs for date, logs in dates.items()}
-            for title, dates in conversations.items()
-        }
-    }) 
+        data = extract_json_from_zip(zip_file)
+
+        if not data:
+            return render(request, "logs/upload_zip.html", {"error": "conversations.jsonが見つかりませんでした"})
+
+        conversations = parse_conversations(data)
+    
+        # 結果表示
+        return render(request, "logs/import_json.html", {
+            "data": {
+                title: {date: logs for date, logs in dates.items()}
+                for title, dates in conversations.items()
+            }
+        }) 
 
 
 
