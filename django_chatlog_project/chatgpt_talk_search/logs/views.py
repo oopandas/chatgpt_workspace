@@ -29,8 +29,8 @@ class LogsCreate(CreateView):
 def extract_json_from_zip(zip_file):
     """zipからjsonを抽出"""
 
-    data = None
-    #ここの文字列何入れるか迷う
+    conversations_data = []
+
     with zipfile.ZipFile(zip_file) as zip_ref:
         # temp_dirでデータを一時的に保存されるランダムなフォルダを作成する
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -41,24 +41,28 @@ def extract_json_from_zip(zip_file):
             # zipの中に入っているファイルを一つずつ取り出して表示する
             for file in zip_ref.namelist():
                 print(file)
-                if "conversations.json" in file:
+                # if "conversations.json" in file:
+                if file.startswith("conversations") and file.endswith(".json"):
                     logs_path = os.path.join(temp_dir, file)
                 
                     with open(logs_path, "r", encoding="utf-8") as f:
                         data = json.load(f)
-                        break  # conversations.jsonが見つかったらループを抜ける
-    return data
+                        conversations_data.extend(data)
+                        # break  # conversations.jsonが見つかったらループを抜ける
+    return conversations_data
 
-def parse_conversations(data):
+def parse_conversations(zip_data):
     """conversations.jsonの内容を解析して、会話のタイトルと日付ごとに会話の内容に整形"""
     
     # conversation_path = settings.BASE_DIR / "logs_data" / "conversations.json"
 
     conversations = defaultdict(lambda: defaultdict(list))
         
-    for item in data:
+    for item in zip_data:
         title = item.get("title")
         create_time = item.get("create_time")
+        if not create_time:
+            continue
         # print(create_time)
         logs_datetime = datetime.fromtimestamp(create_time)
 
@@ -76,7 +80,9 @@ def parse_conversations(data):
                     content = message.get("content")
                     if content:
                         parts = content.get("parts", [])
-                        parts_text = "\n".join(parts)
+                        # print(parts)
+                        # parts_text = "\n".join(parts)
+                        parts_text = "\n".join(p for p in parts if isinstance(p, str))
     
                         conversations[title][strftime].append(parts_text)
                         # print(conversations)
@@ -94,19 +100,21 @@ def upload_zip(request):
 
         if not zip_file:
             return render(request, "logs/upload_zip.html", {"error": "zipファイルを選択してください"})
+        # 呼び出しと返り値の格納を同時に行なっている
+        zip_data = extract_json_from_zip(zip_file) 
+        # zip → jsonデータ抽出完了
 
-        data = extract_json_from_zip(zip_file)
-
-        if not data:
+        if not zip_data:
             return render(request, "logs/upload_zip.html", {"error": "conversations.jsonが見つかりませんでした"})
 
-        conversations = parse_conversations(data)
+        extracted_conversations = parse_conversations(zip_data)
+        # json → 表示用のデータに整形完了
     
         # 結果表示
         return render(request, "logs/import_json.html", {
             "data": {
                 title: {date: logs for date, logs in dates.items()}
-                for title, dates in conversations.items()
+                for title, dates in extracted_conversations.items()
             }
         }) 
 
