@@ -56,7 +56,12 @@ def parse_conversations(zip_data):
     
     # conversation_path = settings.BASE_DIR / "logs_data" / "conversations.json"
 
-    conversations = defaultdict(lambda: defaultdict(list))
+    # conversations = defaultdict(lambda: defaultdict(list))
+    conversations = defaultdict(lambda: {
+        "create_time": None,
+        "logs_by_date": 
+    defaultdict(list)})
+
         
     for item in zip_data:
         title = item.get("title")
@@ -66,7 +71,7 @@ def parse_conversations(zip_data):
         # print(create_time)
         logs_datetime = datetime.fromtimestamp(create_time)
 
-        strftime = logs_datetime.strftime("%-m/%-d")  
+        strftime = logs_datetime.strftime("%Y-%-m/%-d")  
 
         mapping = item.get("mapping", {})
         for value in mapping.values():
@@ -83,15 +88,28 @@ def parse_conversations(zip_data):
                         # print(parts)
                         # parts_text = "\n".join(parts)
                         parts_text = "\n".join(p for p in parts if isinstance(p, str))
-    
-                        conversations[title][strftime].append(parts_text)
+
+                        conversations[title]["create_time"] = create_time
+                        conversations[title]["logs_by_date"][strftime].append(parts_text)
                         # print(conversations)
     return conversations
+
+# タイトル並び替え
+def get_sorted_titles(extracted_conversations):
+        return sorted(extracted_conversations.items(), key=lambda x: x[1]["create_time"])
+
+# 日付一覧
+def get_dates(extracted_conversations, title):
+    return sorted(extracted_conversations[title]["logs_by_date"].keys())
+
+# ログ一覧
+def get_logs(extracted_conversations, title, date):
+    return extracted_conversations[title]["logs_by_date"][date]
 
 def upload_zip(request):
     """zipファイルをアップロードして、conversations.jsonの内容を解析して表示する"""
     # 最初に開いたとき
-    if request.method == "GET":
+    if request.method == "GET" and not request.GET:
         return render(request, "logs/upload_zip.html")
     
     # アップロードされたとき
@@ -107,15 +125,41 @@ def upload_zip(request):
         if not zip_data:
             return render(request, "logs/upload_zip.html", {"error": "conversations.jsonが見つかりませんでした"})
 
-        extracted_conversations = parse_conversations(zip_data)
         # json → 表示用のデータに整形完了
-    
+        extracted_conversations = parse_conversations(zip_data)
+        
+    else:
+        extracted_conversations = parse_conversations(zip_data)
+
+
+        # タイトルや日付がクリックされた時に格納される 
+        title = request.GET.get("title")
+        date = request.GET.get("date")
+
+        logs_title_sort = get_sorted_titles(extracted_conversations) 
+
+        # データがない状態を先に作る
+        dates_sort = None
+        logs_sort = None
+
+        # タイトルやログにクリックされたとき
+
+        if title:
+            dates_sort = get_dates(extracted_conversations, title)
+        if title and date:
+            logs_sort = get_logs(extracted_conversations, title, date)
+        
         # 結果表示
+        # return render(request, "logs/import_json.html", {
+        #     "data": {
+        #         title: {date: logs for date, logs in dates.items()}
+        #         for title, dates in extracted_conversations.items()
+        #     }
+        # })
         return render(request, "logs/import_json.html", {
-            "data": {
-                title: {date: logs for date, logs in dates.items()}
-                for title, dates in extracted_conversations.items()
-            }
+            "titles": logs_title_sort,
+            "dates": dates_sort,
+            "logs": logs_sort,
         }) 
 
 
