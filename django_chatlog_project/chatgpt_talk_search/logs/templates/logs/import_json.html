@@ -1,51 +1,35 @@
-
 {% extends 'base.html' %}
 
 {% block content %}
 
-<style>
-    summary {
-        list-style: none;
-    }
-    summary::-webkit-details-marker {
-        display: none;
-    }
-</style>
+<h2>タイトル一覧</h2>
 
-{% for title, dates in data.items %}
-    <details style="margin-bottom: 10px;">
-        <summary style="cursor: pointer; font-weight: bold;">
-            <h2>▶︎{{ title }}</h2>
-        </summary>
-        {% for date, logs in dates.items %}
-            <h4>{{ date }}</h4>
-            {% for log in logs %}
-            <div style="margin-bottom: 12px; border: 1px solid #ddd; padding: 10px; border-radius: 8px;">
-        
-                <p>{{ log }}</p>
-        
-                <button onclick="copyText(this)">
-                    コピー
-                </button>
-        
-            </div>
-            {% endfor %}
-
-        {% endfor %}    
-    </details>
-
+{% for title, data in titles %}
+    <div>
+        <a href="?title={{ title }}">{{ title }}</a>
+    </div>
 {% endfor %}
-<script>
-    function copyText(button) {
-        const text = button.previousElementSibling.innerText;
-    
-        navigator.clipboard.writeText(text)
-            .then(() => {
-                alert("コピーしました！");
-            })
-            .catch(() => {
-                alert("コピー失敗");
-            });
-    }
-</script>
-{% endblock  %}
+
+<hr>
+
+{% if dates %}
+    <h3>日付一覧</h3>
+    {% for d in dates %}
+        <div>
+            <a href="?title={{ request.GET.title }}&date={{ d }}">{{ d }}</a>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<hr>
+
+{% if logs %}
+    <h3>ログ内容</h3>
+    {% for log in logs %}
+        <div style="margin-bottom: 12px; border: 1px solid #ddd; padding: 10px;">
+            <p>{{ log }}</p>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}
