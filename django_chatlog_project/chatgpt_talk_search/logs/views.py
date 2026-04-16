@@ -40,7 +40,7 @@ def extract_json_from_zip(zip_file):
             print("Extracted files:")
             # zipの中に入っているファイルを一つずつ取り出して表示する
             for file in zip_ref.namelist():
-                print(file)
+                # print(file)
                 # if "conversations.json" in file:
                 if file.startswith("conversations") and file.endswith(".json"):
                     logs_path = os.path.join(temp_dir, file)
@@ -65,6 +65,8 @@ def parse_conversations(zip_data):
         
     for item in zip_data:
         title = item.get("title")
+        if not title:
+            continue
         create_time = item.get("create_time")
         if not create_time:
             continue
@@ -92,19 +94,29 @@ def parse_conversations(zip_data):
                         conversations[title]["create_time"] = create_time
                         conversations[title]["logs_by_date"][strftime].append(parts_text)
                         # print(conversations)
-    return conversations
+    # print("件数:", len(conversations))
+    # print(conversations.keys())
+    # return dict(conversations)
+    # 👇ここから変換処理
+    result = {}
 
-# タイトル並び替え
-def get_sorted_titles(extracted_conversations):
-        return sorted(extracted_conversations.items(), key=lambda x: x[1]["create_time"])
+    for title, data in conversations.items():
+        result[title] = {
+            "create_time": data["create_time"],
+            "logs_by_date": dict(data["logs_by_date"])
+        }
 
-# 日付一覧
-def get_dates(extracted_conversations, title):
-    return sorted(extracted_conversations[title]["logs_by_date"].keys())
+    return result
 
-# ログ一覧
-def get_logs(extracted_conversations, title, date):
-    return extracted_conversations[title]["logs_by_date"][date]
+def sort_conversations(extracted_conversations):
+        return dict(
+            sorted(
+                extracted_conversations.items(),
+                key=lambda x: x[1]["create_time"],
+                reverse=True
+            )
+        )
+
 
 def upload_zip(request):
     """zipファイルをアップロードして、conversations.jsonの内容を解析して表示する"""
@@ -127,40 +139,24 @@ def upload_zip(request):
 
         # json → 表示用のデータに整形完了
         extracted_conversations = parse_conversations(zip_data)
-        
-    else:
-        extracted_conversations = parse_conversations(zip_data)
 
 
         # タイトルや日付がクリックされた時に格納される 
         title = request.GET.get("title")
         date = request.GET.get("date")
 
-        logs_title_sort = get_sorted_titles(extracted_conversations) 
+        sorted_data = sort_conversations(extracted_conversations) 
+
 
         # データがない状態を先に作る
-        dates_sort = None
-        logs_sort = None
-
-        # タイトルやログにクリックされたとき
-
-        if title:
-            dates_sort = get_dates(extracted_conversations, title)
-        if title and date:
-            logs_sort = get_logs(extracted_conversations, title, date)
+        # dates_sort = None
+        # logs_sort = None
         
         # 結果表示
-        # return render(request, "logs/import_json.html", {
-        #     "data": {
-        #         title: {date: logs for date, logs in dates.items()}
-        #         for title, dates in extracted_conversations.items()
-        #     }
-        # })
         return render(request, "logs/import_json.html", {
-            "titles": logs_title_sort,
-            "dates": dates_sort,
-            "logs": logs_sort,
+            "data": sorted_data
         }) 
+
 
 
 
