@@ -71,14 +71,20 @@ def parse_conversations(zip_data):
         if not create_time:
             continue
         # print(create_time)
-        logs_datetime = datetime.fromtimestamp(create_time)
+        # logs_datetime = datetime.fromtimestamp(create_time)
 
-        strftime = logs_datetime.strftime("%Y-%-m/%-d")  
+        # strftime = logs_datetime.strftime("%Y-%-m/%-d")  
 
         mapping = item.get("mapping", {})
         for value in mapping.values():
             message = value.get("message", {})
             if message:
+                message_create_time = message.get("create_time")
+                if not message_create_time:
+                    continue
+                logs_datetime = datetime.fromtimestamp(message_create_time)
+
+                strftime = logs_datetime.strftime("%Y-%-m/%-d")  
                 # 自分の会話だけ取得する意図
                 author = message.get("author", {})
                 role = author.get("role", "")
@@ -101,9 +107,28 @@ def parse_conversations(zip_data):
     result = {}
 
     for title, data in conversations.items():
+
+        sorted_logs_by_date = dict(
+            sorted(
+                data["logs_by_date"].items(),
+                key=lambda x: x[0],
+                reverse=True
+            )
+        )
+        sorted_parts_text = dict(
+            sorted(
+                data["logs_by_date"].values(),
+                key=lambda x: x[0],
+                reverse=True
+
+            )
+        )
+
         result[title] = {
             "create_time": data["create_time"],
-            "logs_by_date": dict(data["logs_by_date"])
+            # "logs_by_date": dict(data["logs_by_date"])
+            "logs_by_date": sorted_logs_by_date,
+            "logs_by_date": sorted_parts_text
         }
 
     return result
@@ -140,17 +165,7 @@ def upload_zip(request):
         # json → 表示用のデータに整形完了
         extracted_conversations = parse_conversations(zip_data)
 
-
-        # タイトルや日付がクリックされた時に格納される 
-        title = request.GET.get("title")
-        date = request.GET.get("date")
-
         sorted_data = sort_conversations(extracted_conversations) 
-
-
-        # データがない状態を先に作る
-        # dates_sort = None
-        # logs_sort = None
         
         # 結果表示
         return render(request, "logs/import_json.html", {
