@@ -98,37 +98,40 @@ def parse_conversations(zip_data):
                         parts_text = "\n".join(p for p in parts if isinstance(p, str))
 
                         conversations[title]["create_time"] = create_time
-                        conversations[title]["logs_by_date"][strftime].append(parts_text)
+                        conversations[title]["logs_by_date"][strftime].append({
+                            "text": parts_text,
+                            "time": message_create_time
+                        })
                         # print(conversations)
     # print("件数:", len(conversations))
     # print(conversations.keys())
     # return dict(conversations)
     # 👇ここから変換処理
+    # テンプレートに渡す用
     result = {}
 
     for title, data in conversations.items():
 
-        sorted_logs_by_date = dict(
-            sorted(
-                data["logs_by_date"].items(),
-                key=lambda x: x[0],
-                reverse=True
-            )
-        )
-        sorted_parts_text = dict(
-            sorted(
-                data["logs_by_date"].values(),
-                key=lambda x: x[0],
-                reverse=True
+        # 1つのタイトル分の中身を作る用
+        sorted_logs_by_date = {}
 
+        for date, logs in sorted(
+            data["logs_by_date"].items(),
+            key=lambda x: x[0],
+            reverse=True
+        ):  
+            sorted_logs = sorted(
+                logs,
+                key=lambda x: x["time"],
+                reverse=True
             )
-        )
+
+            sorted_logs_by_date[date] = sorted_logs
 
         result[title] = {
             "create_time": data["create_time"],
             # "logs_by_date": dict(data["logs_by_date"])
-            "logs_by_date": sorted_logs_by_date,
-            "logs_by_date": sorted_parts_text
+            "logs_by_date": sorted_logs_by_date
         }
 
     return result
