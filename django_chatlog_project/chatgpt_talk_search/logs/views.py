@@ -63,7 +63,7 @@ def parse_conversations(zip_data):
     defaultdict(list)})
 
         
-    for item in zip_data:
+        for item in zip_data:
         title = item.get("title")
         if not title:
             continue

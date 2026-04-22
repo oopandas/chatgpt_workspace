@@ -2,32 +2,44 @@
 
 ## Overview
 
-このアプリはエクスポートされたデータを使用して、ChatGPT内のログを一覧で表示するアプリです。  
-ユーザーは自分のエクスポートしたデータをサイト内にファイルを貼り付けます。  
-ファイルのデータの解析が開始されます。    
-解析されたデータから、日付、ログのタイトル、質問したテキストの冒頭15行が表示されます。  
-冒頭15行をChatGPT内の閲覧したいログの検索欄(cmd+f)で貼り付けることで、特定の日付、遡りたい自分の会話までマウスでスクロールせずに戻ることができます。  
+ChatGptのエクスポートデータ(conversations.json)を解析し、
+タイトル・日付・ユーザー発言を時系列で整理して可視化するwebアプリ
 
 ## Features
 
-- 一覧表示(日付/ タイトル/ 質問の冒頭15行)
+- タイトルの一覧表示
+- タイトルのアコーディオン表示
+- 日付順にログの内容が分割
+- タイトル・日付・ログをすべて時系列(新しい順)でソート表示
 - 貼り付け用のコピーボタン
-- 
 
 ## Tech Stack
 
 - Python 3.x
 - Django==5.1
+- Bootstrap
 - Python-dotenv
 ## Live Demo
 
 https:
 
+## Architecture
+1. 送信されたzipファイルから、conversations.jsonを抽出
+2. conversations.jsonからtitle, create_time, message.create_time, content.partsを抽出
+3. defaultdictを用いて「タイトル → 日付 → ログ」の構造に整形
+4. 各ログにtimeを付与し、ログを時系列でソート
+5. 日付ごとにログをまとめ、日付を新しい順にソート
+6. タイトルをcreate_timeベースで新しい順にソート
+7. Djangoテンプレートに渡して表示
+8. Bootstrapでデザイン(アコーディオン)を適用
+9. ログの内容にコピーボタンを設置
+10. コピーしたテキストをchatgpt内の同じタイトルの会話ないで検索(cmd+f)で貼り付けて戻りたい日付まで遡る
+
 ## Environment setup procedure
 
 ### 1. Clone the repository
 git clone https://github.com/your-username/アプリ名.git  
-cd アプリ名  
+cd chatgpt_work_space/django_chatlog_project/chatgpt_talk_search  
 
 ### 2. Create a virtual environment
 python -m venv venv  
