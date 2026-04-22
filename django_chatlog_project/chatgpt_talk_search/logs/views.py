@@ -63,7 +63,7 @@ def parse_conversations(zip_data):
     defaultdict(list)})
 
         
-        for item in zip_data:
+    for item in zip_data:
         title = item.get("title")
         if not title:
             continue
@@ -84,7 +84,7 @@ def parse_conversations(zip_data):
                     continue
                 logs_datetime = datetime.fromtimestamp(message_create_time)
 
-                strftime = logs_datetime.strftime("%Y-%-m/%-d")  
+                strftime = logs_datetime.strftime("%Y-%m/%d")  
                 # 自分の会話だけ取得する意図
                 author = message.get("author", {})
                 role = author.get("role", "")
