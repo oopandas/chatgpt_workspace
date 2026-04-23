@@ -54,9 +54,6 @@ def extract_json_from_zip(zip_file):
 def parse_conversations(zip_data):
     """conversations.jsonの内容を解析して、会話のタイトルと日付ごとに会話の内容に整形"""
     
-    # conversation_path = settings.BASE_DIR / "logs_data" / "conversations.json"
-
-    # conversations = defaultdict(lambda: defaultdict(list))
     conversations = defaultdict(lambda: {
         "create_time": None,
         "logs_by_date": 
@@ -70,10 +67,6 @@ def parse_conversations(zip_data):
         create_time = item.get("create_time")
         if not create_time:
             continue
-        # print(create_time)
-        # logs_datetime = datetime.fromtimestamp(create_time)
-
-        # strftime = logs_datetime.strftime("%Y-%-m/%-d")  
 
         mapping = item.get("mapping", {})
         for value in mapping.values():
@@ -93,8 +86,7 @@ def parse_conversations(zip_data):
                     content = message.get("content")
                     if content:
                         parts = content.get("parts", [])
-                        # print(parts)
-                        # parts_text = "\n".join(parts)
+                        
                         parts_text = "\n".join(p for p in parts if isinstance(p, str))
 
                         conversations[title]["create_time"] = create_time
@@ -103,9 +95,6 @@ def parse_conversations(zip_data):
                             "time": message_create_time
                         })
                         # print(conversations)
-    # print("件数:", len(conversations))
-    # print(conversations.keys())
-    # return dict(conversations)
     # 👇ここから変換処理
     # テンプレートに渡す用
     result = {}
@@ -130,7 +119,6 @@ def parse_conversations(zip_data):
 
         result[title] = {
             "create_time": data["create_time"],
-            # "logs_by_date": dict(data["logs_by_date"])
             "logs_by_date": sorted_logs_by_date
         }
 
@@ -174,9 +162,5 @@ def upload_zip(request):
         return render(request, "logs/import_json.html", {
             "data": sorted_data
         }) 
-
-
-
-
 
 # Create your views here.
