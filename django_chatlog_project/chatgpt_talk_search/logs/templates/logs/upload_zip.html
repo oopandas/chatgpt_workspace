@@ -8,7 +8,7 @@
     <form class="" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <p>ここにzipファイルをアップロード</p>
-        <input type="file" name="zip_file">
+        <input type="file" name="zip_file" accept=".zip" required>
         
         <button type="submit">送信</button>
     </form>
