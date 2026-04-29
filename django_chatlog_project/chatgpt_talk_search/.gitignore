@@ -13,6 +13,3 @@ db.sqlite3
 
 .DS_Store
 
-# log_data
-
-logs_data
