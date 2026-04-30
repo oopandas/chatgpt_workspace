@@ -1,6 +1,5 @@
 from django.shortcuts import render
 import json, tempfile, os, zipfile
-from django.conf import settings
 from datetime import datetime
 from collections import defaultdict
 
@@ -13,21 +12,18 @@ def extract_json_from_zip(zip_file):
     with zipfile.ZipFile(zip_file) as zip_ref:
         # temp_dirでデータを一時的に保存されるランダムなフォルダを作成する
         with tempfile.TemporaryDirectory() as temp_dir:
-            # zipの中身をtemp_dirフォルダに全部取り出す
             zip_ref.extractall(temp_dir)
 
-            print("Extracted files:")
             # zipの中に入っているファイルを一つずつ取り出して表示する
             for file in zip_ref.namelist():
-                # print(file)
-                # if "conversations.json" in file:
+                # conversations.json(複数分割されている可能性がある)を検出
                 if file.startswith("conversations") and file.endswith(".json"):
                     logs_path = os.path.join(temp_dir, file)
                 
                     with open(logs_path, "r", encoding="utf-8") as f:
                         data = json.load(f)
                         conversations_data.extend(data)
-                        # break  # conversations.jsonが見つかったらループを抜ける
+                        # conversations.jsonが見つかったらループを抜ける
     return conversations_data
 
 def parse_conversations(zip_data):
@@ -48,6 +44,7 @@ def parse_conversations(zip_data):
             continue
 
         mapping = item.get("mapping", {})
+        # conversations.jsonはツリー構造のため、各メッセージを掘っていく
         for value in mapping.values():
             message = value.get("message", {})
             if message:
@@ -56,16 +53,18 @@ def parse_conversations(zip_data):
                     continue
                 logs_datetime = datetime.fromtimestamp(message_create_time)
 
+                # 日付単位でグループ化するため文字列に変換
                 strftime = logs_datetime.strftime("%Y-%m/%d")  
                 # 自分の会話だけ取得する意図
                 author = message.get("author", {})
                 role = author.get("role", "")
                 if role == "user":
-                    #ログの中身を掘っていく
+                    # messageの中のcontentからユーザーの会話テキストを抽出
                     content = message.get("content")
                     if content:
                         parts = content.get("parts", [])
                         
+                        # partsはリストで、テキスト以外の要素も含まれているためテキストだけを抽出して結合する
                         parts_text = "\n".join(p for p in parts if isinstance(p, str))
 
                         conversations[title]["create_time"] = create_time
@@ -73,7 +72,6 @@ def parse_conversations(zip_data):
                             "text": parts_text,
                             "time": message_create_time
                         })
-                        # print(conversations)
     # 👇ここから変換処理
     # テンプレートに渡す用
     result = {}
@@ -104,13 +102,13 @@ def parse_conversations(zip_data):
     return result
 
 def sort_conversations(extracted_conversations):
-        return dict(
-            sorted(
-                extracted_conversations.items(),
-                key=lambda x: x[1]["create_time"],
-                reverse=True
-            )
+    return dict(
+        sorted(
+            extracted_conversations.items(),
+            key=lambda x: x[1]["create_time"],
+            reverse=True
         )
+    )
 
 
 def upload_zip(request):
@@ -125,7 +123,6 @@ def upload_zip(request):
 
         if not zip_file:
             return render(request, "logs/upload_zip.html", {"error": "zipファイルを選択してください"})
-        # 呼び出しと返り値の格納を同時に行なっている
         zip_data = extract_json_from_zip(zip_file) 
         # zip → jsonデータ抽出完了
 
