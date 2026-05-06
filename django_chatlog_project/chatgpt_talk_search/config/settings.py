@@ -105,4 +105,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 # 開発時に読み込むstaticファイルの場所
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
+# Renderなどのプロキシ環境でHTTPSを正しく認識させるための設定
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
