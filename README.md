@@ -7,6 +7,13 @@ ChatGPTのエクスポートデータ(conversations.json)を解析し、
 
 長い会話をスクロールせずに、目的の発言へすぐアクセスできることを目的としています。
 
+## 利用上の注意
+
+- 本アプリはアップロードされたデータを一時的に処理するためのツールです
+- アップロードされたファイルはtempfileを用いて一時的に処理しており、データベースへの保存は行っていません
+- 個人情報や機密情報を含むデータのアップロードは自己責任で行ってください
+- 本アプリの利用によって生じた損害について、開発者は責任を負いません
+
 ## Features(特徴)
 
 - タイトルごとの一覧表示
@@ -63,10 +70,12 @@ pip install -r requirements.txt
 ```
 
 ### 4. Create a .env file
-Create a .env file in the project root and add:
+Create a `.env` file in the project root and add:
 
+```env
 DJANGO_SECRET_KEY=your-secret-key
 DEBUG=True
+```
 
 ### 5. Run the development server
 ```bash
