@@ -110,15 +110,6 @@ def sort_conversations(extracted_conversations):
         )
     )
 
-def monthly_conversations(sortted_data):
-    month_data = defaultdict(dict)
-    for title, data in sorted_data.items():
-        create_time = data["create_time"]
-        month = create_time[0:7]
-        month_data[month][title] = data
-
-    return month_data
-
 def upload_zip(request):
     """zipファイルをアップロードして、conversations.jsonの内容を解析して表示する"""
     # 最初に開いたとき
@@ -142,12 +133,9 @@ def upload_zip(request):
 
         sorted_data = sort_conversations(extracted_conversations) 
 
-        monthly_data = monthly_conversations(sorted_data)
-        
         # 結果表示
         return render(request, "logs/import_json.html", {
             "data": sorted_data,
-            "month_data": monthly_conversations(sorted_data)
         }) 
 
 # Create your views here.
