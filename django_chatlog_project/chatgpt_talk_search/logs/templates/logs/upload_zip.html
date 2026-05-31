@@ -7,7 +7,13 @@
 {% block content %}
     <form class="" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        <p>ここにzipファイルをアップロード</p>
+        <h3>ここにzipファイルをアップロード</h3>
+
+        <p>
+        <a href="{% url 'logs:export_guide' %}">
+            ChatGPTをエクスポートするには？
+        </a>
+        </p>
         <input type="file" name="zip_file" accept=".zip" required>
         
         <button type="submit">送信</button>

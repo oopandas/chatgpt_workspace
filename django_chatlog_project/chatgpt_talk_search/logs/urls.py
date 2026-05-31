@@ -5,4 +5,5 @@ app_name = "logs"
 
 urlpatterns = [
     path("upload_zip/", views.upload_zip, name="upload_zip"),
+    path("export-guide/", views.export_guide, name="export_guide"),
 ]

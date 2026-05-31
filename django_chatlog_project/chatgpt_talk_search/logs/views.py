@@ -138,4 +138,6 @@ def upload_zip(request):
             "data": sorted_data,
         }) 
 
+def export_guide(request):
+    return render(request, "logs/export_guide.html")
 # Create your views here.
