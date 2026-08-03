@@ -15,9 +15,9 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # 本番環境ではFalseにする(エラーの詳細を表示させないため)
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-# ローカルと Render のドメインを許可
+# .envのALLOWED_HOSTSで、環境ごとに許可するドメインを指定する
 # アクセスを許可するドメイン(本番では制限する)
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com"]
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 
 INSTALLED_APPS = [
