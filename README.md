@@ -27,22 +27,66 @@ ChatGPTのエクスポートデータ(conversations.json)を解析し、
 
 ## Tech Stack(使用技術)
 
+### Backend
 - Python 3.x
 - Django 5.x
+- Gunicorn
+
+### Frontend 
 - Bootstrap
+
+### Web Server
+- Nginx
+
+### Infrastructure
+- AWS EC2
+- Cloudflare
+
+### Previous Deployment
+- Render 
+
+### Others
 - Python-dotenv
-- Render (Deployment)
 
 ## Live Demo
 
+### AWS (現在公開中)
+
+https://chatgpt-search.aws-and-infra-study-test.com/
+
+> EC2 + Nginx + Gunicorn + Djangoで公開
+
+### Render版 (初期デプロイ環境)
+
 https://chatgpt-workspace.onrender.com/
 
+> 初めてWebへ公開した環境
+
 ## Architecture(構造設計)
+訪問者
+        │
+        ▼
+Cloudflare (DNS)
+        │
+        ▼
+AWS EC2
+   ┌─────────────────────┐
+   │ Nginx               │
+   │   │                 │
+   │ Gunicorn            │
+   │   │                 │
+   │ Django              │
+   │   │                 │
+   │ tempfile            │
+   └─────────────────────┘
+
+### Data Flow
+
 ※ データの取得 → 構造化 → ソート → 表示までを一貫して設計
-1. 送信されたzipファイルから、conversations.jsonを抽出
+1. アップロードされたzipファイルから、conversations.jsonを抽出
 2. conversations.jsonからtitle, create_time, message.create_time, content.partsを抽出
 3. defaultdictを用いて「タイトル → 日付 → ログ」の構造に整形
-4. 各ログにtimeを付与し、ログを時系列でソート
+4. 各ログにcreate_timeを付与し、ログを時系列でソート
 5. 日付ごとにログをまとめ、日付を新しい順にソート
 6. タイトルをcreate_timeベースで新しい順にソート
 7. Djangoテンプレートに渡して表示
@@ -151,6 +195,26 @@ python manage.py runserver
 - ローカルと本番環境の違い（依存関係・実行ディレクトリ）によってエラーが発生することを経験
 - エラーの原因をログから特定し、順序や環境設定を調整することで解決できた
 
+### AWSデプロイ時の問題と対応
+
+- 独自ドメインでアクセスしてもWebアプリにアクセスできない問題が発生した。
+- RenderではWebサーバーやアプリケーションサーバー周辺の設定を意識する機会が少なかったため、NginxやGunicornの役割を十分に理解していなかった。
+- EC2上でアプリケーションを公開するため、Nginxをリバースプロキシとして設定し、Gunicornを介してDjangoと接続する構成を構築した。
+- NginxとGunicornを設定し、CloudflareでDNSを設定することで、独自ドメインからアプリケーションへアクセスできるようにした。
+
+- 使用していたDjango 5.2ではPython 3.11以上を要求していた一方、EC2のPythonが3.9だったため、エラーが発生した。
+- EC2側にPython 3.11を追加インストールすることで解決した。
+
+- Nginxの`client_max_body_size`を50MBに設定していたため、それを超えるZipファイルをアップロードできない問題が発生した。
+- 利用するデータサイズを想定し、アップロード可能なファイルサイズを適切に設計する必要があることを学んだ。
+
+### AWSでのインフラ構築
+
+- EC2へChatLogSearchアプリをデプロイし、本番環境で公開した。
+- Nginx・Gunicornを使用し、EC2上でDjangoアプリケーションを公開する構成を構築した。
+- CloudflareでDNSを設定し、独自ドメインからアクセスできるようにした。
+- RenderのようなPaaSと異なり、EC2ではWebサーバーやアプリケーションサーバーを自分で構成する必要があることを学んだ。
+
 ## UI改善
 
 - Bootstrap Accordionを利用し、タイトル → 日付 → ログ の二段階アコーディオン形式で表示
@@ -163,3 +227,5 @@ python manage.py runserver
 - リアルタイムでログを取得・反映できる仕組みの実装
 - UI改善（長文ログの折りたたみ）
 - 複数AIサービス（Claude / Gemini）への対応
+- S3への画像・JSONファイル保存
+- ALBで使用ユーザーが増えた際の負荷分散
