@@ -63,10 +63,14 @@ https://chatgpt-workspace.onrender.com/
 > 初めてWebへ公開した環境
 
 ## Architecture(構造設計)
-``mermaid
+```mermaid
 flowchart TD
-    A[訪問者] --> B[Cloudflare<br/>DNS]
-    B --> C[AWS EC2]
+    A[訪問者]
+    B[Cloudflare<br/>DNS]
+    C[AWS EC2]
+
+    A --> B
+    B --> C
 
     subgraph EC2["AWS EC2"]
         D[Nginx]
@@ -80,6 +84,7 @@ flowchart TD
     end
 
     C --> D
+```
 
 ### Data Flow
 
