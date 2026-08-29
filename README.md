@@ -63,22 +63,23 @@ https://chatgpt-workspace.onrender.com/
 > 初めてWebへ公開した環境
 
 ## Architecture(構造設計)
-訪問者
-        │
-        ▼
-Cloudflare (DNS)
-        │
-        ▼
-AWS EC2
-   ┌─────────────────────┐
-   │ Nginx               │
-   │   │                 │
-   │ Gunicorn            │
-   │   │                 │
-   │ Django              │
-   │   │                 │
-   │ tempfile            │
-   └─────────────────────┘
+``mermaid
+flowchart TD
+    A[訪問者] --> B[Cloudflare<br/>DNS]
+    B --> C[AWS EC2]
+
+    subgraph EC2["AWS EC2"]
+        D[Nginx]
+        E[Gunicorn]
+        F[Django]
+        G[tempfile]
+
+        D --> E
+        E --> F
+        F --> G
+    end
+
+    C --> D
 
 ### Data Flow
 
