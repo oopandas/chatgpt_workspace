@@ -64,23 +64,25 @@ https://chatgpt-workspace.onrender.com/
 
 ## Architecture(構造設計)
 
+```text
 訪問者
-   │
-   ▼
+  │
+  ▼
 Cloudflare
-（DNS / ドメイン管理）
-   │
-   ▼
+(DNS / ドメイン管理)
+  │
+  ▼
 AWS EC2
-   │
-   ▼
+  │
+  ▼
 Nginx
-   │
-   ▼
+  │
+  ▼
 Gunicorn
-   │
-   ▼
+  │
+  ▼
 Django
+```
 
 ### Data Flow
 
