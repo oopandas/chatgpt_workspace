@@ -1,5 +1,5 @@
 from django.shortcuts import render
-import json, tempfile, os, zipfile
+import json, zipfile
 from datetime import datetime
 from collections import defaultdict
 
@@ -10,20 +10,15 @@ def extract_json_from_zip(zip_file):
     conversations_data = []
 
     with zipfile.ZipFile(zip_file) as zip_ref:
-        # temp_dirでデータを一時的に保存されるランダムなフォルダを作成する
-        with tempfile.TemporaryDirectory() as temp_dir:
-            zip_ref.extractall(temp_dir)
-
-            # zipの中に入っているファイルを一つずつ取り出して表示する
-            for file in zip_ref.namelist():
-                # conversations.json(複数分割されている可能性がある)を検出
-                if file.startswith("conversations") and file.endswith(".json"):
-                    logs_path = os.path.join(temp_dir, file)
-                
-                    with open(logs_path, "r", encoding="utf-8") as f:
+        # ディスクに展開せず、直接ファイル名一覧を取得
+        for file in zip_ref.namelist():
+            # conversations.json(複数分割されている可能性がある)を検出
+            if file.startswith("conversations") and file.endswith(".json"):
+                    # 必要なファイルのみメモリ上で直接読み込む
+                    with zip_ref.open(file) as f:
                         data = json.load(f)
                         conversations_data.extend(data)
-                        # conversations.jsonが見つかったらループを抜ける
+                        
     return conversations_data
 
 def parse_conversations(zip_data):
